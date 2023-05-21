@@ -1,12 +1,18 @@
 import { LoadFacebookUserApi } from '@/data/contracts/apis';
-import { CreateFacebookAccountRepository, LoadUserAccountRepository } from '@/data/contracts/repos';
+import {
+  CreateFacebookAccountRepository,
+  LoadUserAccountRepository,
+  UpdateFacebookAccountRepository,
+} from '@/data/contracts/repos';
 import { FacebookAuthenticationUseCase } from '@/data/usecases';
 import { AuthenticationError } from '@/domain/errors';
 import { mock, MockProxy } from 'jest-mock-extended';
 
 describe('FacebookAuthenticationUseCase', () => {
   let loadFacebookApi: MockProxy<LoadFacebookUserApi>;
-  let userAccountRepo = mock<LoadUserAccountRepository & CreateFacebookAccountRepository>();
+  let userAccountRepo = mock<
+    LoadUserAccountRepository & CreateFacebookAccountRepository & UpdateFacebookAccountRepository
+  >();
   let sut: FacebookAuthenticationUseCase;
   const token = 'any_token';
 
@@ -43,7 +49,7 @@ describe('FacebookAuthenticationUseCase', () => {
     expect(userAccountRepo.load).toHaveBeenCalledTimes(1);
   });
 
-  it('should call CreateUserAccountRepo when LoadUserAccountRepo returns undefined', async () => {
+  it('should call CreateFacebookAccountRepo when LoadUserAccountRepo returns undefined', async () => {
     userAccountRepo.load.mockResolvedValueOnce(undefined); //sobrescreve o mock do beforeEach
 
     await sut.perform({ token });
@@ -55,4 +61,35 @@ describe('FacebookAuthenticationUseCase', () => {
     });
     expect(userAccountRepo.createFromFacebook).toHaveBeenCalledTimes(1);
   });
+
+  it('should call UpdateFacebookAccountRepo when LoadUserAccountRepo returns data', async () => {
+    userAccountRepo.load.mockResolvedValueOnce({
+      id: 'any_id',
+      name: 'any_name',
+    }); //sobrescreve o mock do beforeEach
+
+    await sut.perform({ token });
+
+    expect(userAccountRepo.updateWithFacebook).toHaveBeenCalledWith({
+      name: 'any_name',
+      facebookId: 'any_fb_id',
+      id: 'any_id',
+    });
+    expect(userAccountRepo.updateWithFacebook).toHaveBeenCalledTimes(1);
+  });
+
+  // it('should call UpdateFacebookAccountRepo when LoadUserAccountRepo returns data whithout name', async () => {
+  //   userAccountRepo.load.mockResolvedValueOnce({
+  //     id: 'any_id',
+  //   }); //sobrescreve o mock do beforeEach
+
+  //   await sut.perform({ token });
+
+  //   expect(userAccountRepo.updateWithFacebook).toHaveBeenCalledWith({
+  //     name: 'any_fb_name',
+  //     facebookId: 'any_fb_id',
+  //     id: 'any_id',
+  //   });
+  //   expect(userAccountRepo.updateWithFacebook).toHaveBeenCalledTimes(1);
+  // });
 });
