@@ -6,8 +6,7 @@ import { mock, MockProxy } from 'jest-mock-extended';
 
 describe('FacebookAuthenticationUseCase', () => {
   let loadFacebookApi: MockProxy<LoadFacebookUserApi>;
-  let loadUserAccountRepo: MockProxy<LoadUserAccountRepository>;
-  let createFacebookAccountRepo: MockProxy<CreateFacebookAccountRepository>;
+  let userAccountRepo = mock<LoadUserAccountRepository & CreateFacebookAccountRepository>();
   let sut: FacebookAuthenticationUseCase;
   const token = 'any_token';
 
@@ -18,9 +17,8 @@ describe('FacebookAuthenticationUseCase', () => {
       email: 'any_fb_email',
       facebookId: 'any_fb_id',
     });
-    loadUserAccountRepo = mock();
-    createFacebookAccountRepo = mock();
-    sut = new FacebookAuthenticationUseCase(loadFacebookApi, loadUserAccountRepo, createFacebookAccountRepo);
+    userAccountRepo = mock();
+    sut = new FacebookAuthenticationUseCase(loadFacebookApi, userAccountRepo);
   });
 
   it('should call LoadFacebookUserApi with correct params', async () => {
@@ -41,20 +39,20 @@ describe('FacebookAuthenticationUseCase', () => {
   it('should call LoadUserAccountRepo when call LoadFacebookUserApi returns data', async () => {
     await sut.perform({ token });
 
-    expect(loadUserAccountRepo.load).toHaveBeenCalledWith({ email: 'any_fb_email' });
-    expect(loadUserAccountRepo.load).toHaveBeenCalledTimes(1);
+    expect(userAccountRepo.load).toHaveBeenCalledWith({ email: 'any_fb_email' });
+    expect(userAccountRepo.load).toHaveBeenCalledTimes(1);
   });
 
   it('should call CreateUserAccountRepo when LoadUserAccountRepo returns undefined', async () => {
-    loadUserAccountRepo.load.mockResolvedValueOnce(undefined); //sobrescreve o mock do beforeEach
+    userAccountRepo.load.mockResolvedValueOnce(undefined); //sobrescreve o mock do beforeEach
 
     await sut.perform({ token });
 
-    expect(createFacebookAccountRepo.createFromFacebook).toHaveBeenCalledWith({
+    expect(userAccountRepo.createFromFacebook).toHaveBeenCalledWith({
       email: 'any_fb_email',
       name: 'any_fb_name',
       facebookId: 'any_fb_id',
     });
-    expect(createFacebookAccountRepo.createFromFacebook).toHaveBeenCalledTimes(1);
+    expect(userAccountRepo.createFromFacebook).toHaveBeenCalledTimes(1);
   });
 });
