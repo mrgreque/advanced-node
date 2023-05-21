@@ -26,5 +26,13 @@
       "})"
     ],
     "description": "Log output to console"
+  },
+  "Export to index file": {
+    "scope": "javascript,typescript",
+    "prefix": "exp",
+    "body": [
+      "export * from './$1'"
+    ],
+    "description": "Model of export to index file"
   }
 }
