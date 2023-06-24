@@ -1,5 +1,4 @@
 module.exports = {
-  collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
   coverageDirectory: 'coverage',
   coverageProvider: 'babel',
   moduleNameMapper: {
@@ -10,4 +9,5 @@ module.exports = {
   transform: {
     '\\.ts$': 'ts-jest',
   },
+  collectCoverageFrom: ['<rootDir>/src/**/*.ts', '!**/node_modules/**', '!**/folder-with-untested-files/**'],
 };
