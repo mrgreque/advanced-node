@@ -2,7 +2,12 @@ import { LoadFacebookUserApi } from '@/data/contracts/apis';
 import { LoadUserAccountRepository, SaveFacebookAccountRepository } from '@/data/contracts/repos';
 import { FacebookAuthenticationUseCase } from '@/data/usecases';
 import { AuthenticationError } from '@/domain/errors';
+
 import { mock, MockProxy } from 'jest-mock-extended';
+
+jest.mock('@/domain/models/facebook-account', () => ({
+  FacebookAccount: jest.fn().mockImplementation(() => ({ any: 'any' })),
+}));
 
 describe('FacebookAuthenticationUseCase', () => {
   let loadFacebookApi: MockProxy<LoadFacebookUserApi>;
@@ -44,47 +49,10 @@ describe('FacebookAuthenticationUseCase', () => {
     expect(userAccountRepo.load).toHaveBeenCalledTimes(1);
   });
 
-  it('should create account with facebook data', async () => {
+  it('should call SaveFacebookAccountRepository with FacebookAccount', async () => {
     await sut.perform({ token });
 
-    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledWith({
-      email: 'any_fb_email',
-      name: 'any_fb_name',
-      facebookId: 'any_fb_id',
-    });
-    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not update account name', async () => {
-    userAccountRepo.load.mockResolvedValueOnce({
-      id: 'any_id',
-      name: 'any_name',
-    }); //sobrescreve o mock do beforeEach
-
-    await sut.perform({ token });
-
-    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledWith({
-      name: 'any_name',
-      facebookId: 'any_fb_id',
-      id: 'any_id',
-      email: 'any_fb_email',
-    });
-    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledTimes(1);
-  });
-
-  it('should update account name', async () => {
-    userAccountRepo.load.mockResolvedValueOnce({
-      id: 'any_id',
-    }); //sobrescreve o mock do beforeEach
-
-    await sut.perform({ token });
-
-    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledWith({
-      name: 'any_fb_name',
-      facebookId: 'any_fb_id',
-      id: 'any_id',
-      email: 'any_fb_email',
-    });
+    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledWith({ any: 'any' });
     expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledTimes(1);
   });
 });
